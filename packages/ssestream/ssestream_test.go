@@ -38,6 +38,18 @@ func TestStreamSkipsEventsWithoutData(t *testing.T) {
 			body: ": keep-alive\n\nretry: 3000\n\n",
 			want: nil,
 		},
+		"leading UTF-8 BOM": {
+			body: "\xef\xbb\xbfdata: {\"value\":\"first\"}\n\ndata: [DONE]\n\n",
+			want: []string{"first"},
+		},
+		"leading UTF-8 BOM with comment": {
+			body: "\xef\xbb\xbf: keep-alive\n\ndata: {\"value\":\"first\"}\n\ndata: [DONE]\n\n",
+			want: []string{"first"},
+		},
+		"BOM preserved in data payload": {
+			body: "\xef\xbb\xbfdata: {\"value\":\"first\xef\xbb\xbf\"}\n\ndata: [DONE]\n\n",
+			want: []string{"first\xef\xbb\xbf"},
+		},
 	}
 
 	for name, test := range tests {
