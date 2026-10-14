@@ -1,5 +1,32 @@
 # Changelog
 
+## [3.79.0](https://github.com/openai/openai-go/compare/v3.78.0...v3.79.0) (2026-10-14)
+
+
+### Features
+
+* **api:** expose image tool error and moderation details ([#1061](https://github.com/openai/openai-go/issues/1061)) ([32b409c](https://github.com/openai/openai-go/commit/32b409cf04fe993a03e9d83ae71a61634b8fa49d))
+
+
+### Bug Fixes
+
+* **api:** isolate request options when adding typed headers ([#1057](https://github.com/openai/openai-go/issues/1057)) ([2809c85](https://github.com/openai/openai-go/commit/2809c85d2a9f837f9be9571b151a1aff354ed7a2))
+
+
+### Chores
+
+* **api:** clarify Decisions request and response fields ([#1062](https://github.com/openai/openai-go/issues/1062)) ([0d881ea](https://github.com/openai/openai-go/commit/0d881eaba87b012b203c903dbd8928f9f8153e3a))
+
+
+### Documentation
+
+* **webhooks:** explain durable delivery deduplication ([#1060](https://github.com/openai/openai-go/issues/1060)) ([0ac4189](https://github.com/openai/openai-go/commit/0ac4189b011b9095c8ba29448504cb519ba0ee28))
+
+
+### Build System
+
+* **deps:** bump AWS SDK config to v1.33.6 ([#1059](https://github.com/openai/openai-go/issues/1059)) ([de698b0](https://github.com/openai/openai-go/commit/de698b0a5d08cedb27d814d73a0e43cdb2702654))
+
 ## [3.78.0](https://github.com/openai/openai-go/compare/v3.77.0...v3.78.0) (2026-10-13)
 
 
