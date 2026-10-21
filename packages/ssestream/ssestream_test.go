@@ -679,3 +679,81 @@ func TestStreamDiscardsIncompleteEventAtEOF(t *testing.T) {
 		t.Fatalf("unexpected stream error: %v", err)
 	}
 }
+
+func TestDecoderStripsLeadingBOM(t *testing.T) {
+	tests := map[string]struct {
+		body string
+		want []string
+	}{
+		"leading BOM before data": {
+			body: "\xef\xbb\xbfdata: first\n\ndata: second\n\n",
+			want: []string{"first\n", "second\n"},
+		},
+		"leading BOM before comment": {
+			body: "\xef\xbb\xbf: comment\n\ndata: first\n\n",
+			want: []string{"first\n"},
+		},
+		"leading BOM on leading empty line": {
+			body: "\xef\xbb\xbf\n\ndata: first\n\n",
+			want: []string{"first\n"},
+		},
+		"mid-stream BOM is preserved": {
+			body: "data: first\n\ndata: \xef\xbb\xbfsecond\n\n",
+			want: []string{"first\n", "\xef\xbb\xbfsecond\n"},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := &http.Response{
+				Header: http.Header{
+					"Content-Type": []string{"text/event-stream"},
+				},
+				Body: io.NopCloser(strings.NewReader(test.body)),
+			}
+
+			decoder := NewDecoder(res)
+			if decoder == nil {
+				t.Fatal("expected decoder")
+			}
+
+			var got []string
+			for decoder.Next() {
+				got = append(got, string(decoder.Event().Data))
+			}
+
+			if err := decoder.Err(); err != nil {
+				t.Fatalf("unexpected decoder error: %v", err)
+			}
+			if !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("got %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestStreamStripsLeadingBOM(t *testing.T) {
+	body := "\xef\xbb\xbfdata: {\"value\":\"hello\"}\n\ndata: [DONE]\n\n"
+	res := &http.Response{
+		Header: http.Header{"Content-Type": []string{"text/event-stream"}},
+		Body:   io.NopCloser(strings.NewReader(body)),
+	}
+
+	type payload struct {
+		Value string `json:"value"`
+	}
+
+	stream := NewStream[payload](NewDecoder(res), nil)
+	if !stream.Next() {
+		t.Fatalf("stream stopped before first event: %v", stream.Err())
+	}
+	if got, want := stream.Current().Value, "hello"; got != want {
+		t.Fatalf("stream value = %q, want %q", got, want)
+	}
+	if stream.Next() {
+		t.Fatalf("unexpected additional event: %+v", stream.Current())
+	}
+	if err := stream.Err(); err != nil {
+		t.Fatalf("stream ended with error: %v", err)
+	}
+}

@@ -81,10 +81,11 @@ func (e *StreamError) Error() string {
 
 // A base implementation of a Decoder for text/event-stream.
 type eventStreamDecoder struct {
-	evt Event
-	rc  io.ReadCloser
-	scn *bufio.Scanner
-	err error
+	evt     Event
+	rc      io.ReadCloser
+	scn     *bufio.Scanner
+	err     error
+	started bool
 }
 
 func (s *eventStreamDecoder) Next() bool {
@@ -97,6 +98,10 @@ func (s *eventStreamDecoder) Next() bool {
 
 	for s.scn.Scan() {
 		txt := s.scn.Bytes()
+		if !s.started {
+			s.started = true
+			txt = bytes.TrimPrefix(txt, []byte("\xef\xbb\xbf"))
+		}
 
 		// Dispatch event on an empty line
 		if len(txt) == 0 {
